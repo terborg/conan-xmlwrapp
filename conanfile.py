@@ -18,24 +18,48 @@ class XMLWrappConan(ConanFile):
             "boost/1.67.0@conan/stable"
         )
     
+    exports = "config.*"
+    
     def source(self):
+
         tools.get( "https://github.com/vslavik/xmlwrapp/releases/download/v0.9.0/xmlwrapp-0.9.0.tar.gz", 
                    sha1="6fa3193a013b7d29bb22e220e9bd015bc14eb11e" )
+        
+        #
+        # Here, we upgrade the config.guess and config.sub, because they are way too old
+        #
+        self.run( 'cp -v ' + os.path.dirname( os.path.realpath(__file__) ) + '/config.* ' + os.path.join( self.source_path(), 'admin/' ) )
 
     def source_path( self ):
         return os.path.join( self.source_folder, self.name + '-' + self.version )
 
     def build(self):
         
+        if tools.cross_building( self.settings ):
+            #
+            # Here, we remove the stdlib c++, because it can not be found by the configure script
+            # for Android
+            #
+            del self.settings.compiler.libcxx
+
         env_build = AutoToolsBuildEnvironment(self)
         env_build.fpic = self.options.fPIC
-        
-        configure_args = [ '--disable-docs', '--disable-tests' ]
+        use_vars = env_build.vars
+
+        #
+        # the configure script needs extra motivation not to resort to the default /usr/include stuff
+        #
+        if 'libxml2' in self.deps_cpp_info.deps:
+            libxml2_info = self.deps_cpp_info[ 'libxml2' ]
+            use_vars[ 'LIBXML_CFLAGS' ] = '-I' + libxml2_info.include_paths[0]
+            use_vars[ 'LIBXML_LIBS' ] = '-lxml2'
+            
+        configure_args = [ '--disable-docs', '--disable-tests', '--disable-xslt' ]
         if not self.options.shared:
             configure_args.extend( [ '--enable-static', '--disable-shared', '--enable-static-boost' ] )
         
-        env_build.configure( configure_dir = self.source_path(), args=configure_args )
-        env_build.make()
+        env_build.configure( configure_dir = self.source_path(), args=configure_args, vars=use_vars )
+        env_build.make( vars=use_vars )
 
     def package(self):
         
