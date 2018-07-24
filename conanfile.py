@@ -17,7 +17,6 @@ class XMLWrappConan(ConanFile):
             "libxml2/2.9.8@bincrafters/stable",
             "boost/1.67.0@conan/stable"
         )
-    source_subfolder = name + '-' + version
     
     def source(self):
         tools.get( "https://github.com/vslavik/xmlwrapp/releases/download/v0.9.0/xmlwrapp-0.9.0.tar.gz", 
