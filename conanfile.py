@@ -33,7 +33,7 @@ class XMLWrappConan(ConanFile):
     def source_path( self ):
         return os.path.join( self.source_folder, self.name + '-' + self.version )
 
-    def configure( self ):
+    def build(self):
         #
         # Here, we remove the stdlib c++, because it can not be found by the configure script
         # for Android
@@ -41,7 +41,6 @@ class XMLWrappConan(ConanFile):
         if tools.cross_building( self.settings ):
             del self.settings.compiler.libcxx
 
-    def build(self):
         env_build = AutoToolsBuildEnvironment(self)
         env_build.fpic = self.options.fPIC
         use_vars = env_build.vars
