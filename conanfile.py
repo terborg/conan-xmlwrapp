@@ -54,7 +54,7 @@ class XMLWrappConan(ConanFile):
             configure_args.extend( [ '--enable-static', '--disable-shared', '--enable-static-boost' ] )
             
         if self.options.fPIC:
-            configure_args.extend( [ '--with-pic', '--disable-shared', '--enable-static-boost' ] )
+            configure_args.extend( [ '--with-pic' ] )
         
         env_build.configure( configure_dir = self.source_path(), args=configure_args, vars=use_vars )
         env_build.make( vars=use_vars )
